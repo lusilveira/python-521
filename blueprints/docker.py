@@ -1,4 +1,3 @@
-
 import flask
 import docker
 
@@ -8,49 +7,31 @@ connection = docker.DockerClient()
 
 @blueprint.route('/docker', methods=[ 'GET' ])
 def get_docker():    
-
-    container = connection.containers.get('67e280d098f0')
-    
-    context = {
-        'page': 'docker',
-        'route': {
-            'is_public': False
-        },
-        'container': container
-    }
-
-    return flask.render_template('docker.html', context=context)
-
-@blueprint.route('/docker/start', methods=[ 'GET' ])
-def start_docker():
-
-    container = connection.containers.get('67e280d098f0')
-
-    if not container:
-        flask.flash('Container não encontrado', 'danger')
-
-    elif container.status != 'running':
-        container.start()
-        flask.flash('Container iniciado', 'success')
-
-    else:
-        flask.flash('Container já está iniciado', 'info')
-
-    return flask.redirect('/docker')
-
-@blueprint.route('/docker/stop', methods=[ 'GET' ])
-def stop_docker():
-
-    container = connection.containers.get('67e280d098f0')
-
-    if not container:
-        flask.flash('Container não encontrado', 'danger')
-        
-    elif container.status == 'running':
-        container.stop()
-        flask.flash('Container parado', 'success')
-
-    else:
-        flask.flash('Container já está parado', 'info')
-
-    return flask.redirect('/docker')
+		
+	context = {
+			'page': 'docker',
+			'route': {
+				'is_public': False
+			},								
+			'containers': connection.containers.list(all=True)
+	}
+		
+	return flask.render_template('docker.html', context=context)
+		
+@blueprint.route('/docker/start/<string:containerid>', methods=[ 'GET' ])
+def start_docker(containerid):
+	try:
+		container = connection.containers.get(containerid)
+		container.start()
+	except:
+		pass
+	return flask.redirect('/docker')
+	
+@blueprint.route('/docker/stop/<string:containerid>', methods=[ 'GET' ])
+def stop_docker(containerid):
+	try:
+		container = connection.containers.get(containerid)
+		container.stop()
+	except:
+		pass
+	return flask.redirect('/docker')
